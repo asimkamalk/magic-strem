@@ -1,11 +1,11 @@
-// Piston API is a service for code execution
+// Code Execution Service migrated to Judge0 CE via RapidAPI
 
-const PISTON_API = "https://emkc.org/api/v2/piston";
+const JUDGE0_API = "https://judge0-ce.p.rapidapi.com/submissions?base64_encoded=false&wait=true";
 
 const LANGUAGE_VERSIONS = {
-  javascript: { language: "javascript", version: "18.15.0" },
-  python: { language: "python", version: "3.10.0" },
-  java: { language: "java", version: "15.0.2" },
+  javascript: { language_id: 93 }, // Node.js 18.15.0
+  python: { language_id: 71 }, // Python 3.8.1
+  java: { language_id: 62 }, // Java OpenJDK 13.0.1
 };
 
 /**
@@ -24,24 +24,26 @@ export async function executeCode(language, code) {
       };
     }
 
-    const response = await fetch(`${PISTON_API}/execute`, {
+    const response = await fetch(JUDGE0_API, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        "x-rapidapi-host": "judge0-ce.p.rapidapi.com",
+        "x-rapidapi-key": import.meta.env.VITE_RAPIDAPI_KEY,
       },
       body: JSON.stringify({
-        language: languageConfig.language,
-        version: languageConfig.version,
-        files: [
-          {
-            name: `main.${getFileExtension(language)}`,
-            content: code,
-          },
-        ],
+        language_id: languageConfig.language_id,
+        source_code: code,
       }),
     });
 
     if (!response.ok) {
+      if (response.status === 403) {
+        return {
+          success: false,
+          error: "API Key unauthorized. Did you click 'Subscribe to Test' on RapidAPI?",
+        };
+      }
       return {
         success: false,
         error: `HTTP error! status: ${response.status}`,
@@ -50,35 +52,23 @@ export async function executeCode(language, code) {
 
     const data = await response.json();
 
-    const output = data.run.output || "";
-    const stderr = data.run.stderr || "";
-
-    if (stderr) {
+    // Judge0 Execution states (3 = Accepted)
+    if (data.status.id === 3) {
+      return {
+        success: true,
+        output: data.stdout || "No output",
+      };
+    } else {
       return {
         success: false,
-        output: output,
-        error: stderr,
+        output: data.stdout || "",
+        error: data.stderr || data.compile_output || data.status.description || "Execution failed",
       };
     }
-
-    return {
-      success: true,
-      output: output || "No output",
-    };
   } catch (error) {
     return {
       success: false,
       error: `Failed to execute code: ${error.message}`,
     };
   }
-}
-
-function getFileExtension(language) {
-  const extensions = {
-    javascript: "js",
-    python: "py",
-    java: "java",
-  };
-
-  return extensions[language] || "txt";
 }
