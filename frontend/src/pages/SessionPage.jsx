@@ -1,5 +1,5 @@
 import { useUser } from "@clerk/clerk-react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useNavigate, useParams } from "react-router";
 import { useEndSession, useJoinSession, useSessionById } from "../hooks/useSessions";
 import { PROBLEMS } from "../data/problems";
@@ -46,6 +46,32 @@ function SessionPage() {
   const [selectedLanguage, setSelectedLanguage] = useState("javascript");
   const [code, setCode] = useState(problemData?.starterCode?.[selectedLanguage] || "");
 
+  const codeRef = useRef(code);
+  const syncTimeoutRef = useRef(null);
+
+  // listen for custom stream events (sync code and output)
+  useEffect(() => {
+    if (!call || !user) return;
+
+    const handleCustomEvent = (event) => {
+      const payload = event.custom;
+      if (!payload || payload.userId === user.id) return; // ignore own events
+
+      if (payload.type === "sync_code") {
+        setCode(payload.code);
+        codeRef.current = payload.code;
+        if (payload.language && payload.language !== selectedLanguage) {
+          setSelectedLanguage(payload.language);
+        }
+      } else if (payload.type === "sync_output") {
+        setOutput(payload.output);
+      }
+    };
+
+    const unsubscribe = call.on('custom', handleCustomEvent);
+    return () => unsubscribe();
+  }, [call, user, selectedLanguage]);
+
   // auto-join session if user is not already a participant and not the host
   useEffect(() => {
     if (!session || !user || loadingSession) return;
@@ -76,7 +102,35 @@ function SessionPage() {
     // use problem-specific starter code
     const starterCode = problemData?.starterCode?.[newLang] || "";
     setCode(starterCode);
+    codeRef.current = starterCode;
     setOutput(null);
+
+    // notify other users
+    if (call && user) {
+      call.sendCustomEvent({
+        type: "sync_code",
+        code: starterCode,
+        language: newLang,
+        userId: user.id,
+      }).catch(console.error);
+    }
+  };
+
+  const handleCodeChange = (value) => {
+    setCode(value);
+    codeRef.current = value;
+
+    if (call && user) {
+      if (syncTimeoutRef.current) clearTimeout(syncTimeoutRef.current);
+      syncTimeoutRef.current = setTimeout(() => {
+        call.sendCustomEvent({
+          type: "sync_code",
+          code: codeRef.current,
+          language: selectedLanguage,
+          userId: user.id,
+        }).catch(console.error);
+      }, 500); // 500ms debounce
+    }
   };
 
   const handleRunCode = async () => {
@@ -86,6 +140,14 @@ function SessionPage() {
     const result = await executeCode(selectedLanguage, code);
     setOutput(result);
     setIsRunning(false);
+
+    if (call && user) {
+      call.sendCustomEvent({
+        type: "sync_output",
+        output: result,
+        userId: user.id,
+      }).catch(console.error);
+    }
   };
 
   const handleEndSession = () => {
@@ -237,7 +299,7 @@ function SessionPage() {
                       code={code}
                       isRunning={isRunning}
                       onLanguageChange={handleLanguageChange}
-                      onCodeChange={(value) => setCode(value)}
+                      onCodeChange={handleCodeChange}
                       onRunCode={handleRunCode}
                     />
                   </Panel>
