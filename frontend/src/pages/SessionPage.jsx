@@ -54,10 +54,12 @@ function SessionPage() {
     if (!call || !user) return;
 
     const handleCustomEvent = (event) => {
+      console.log("Received custom event payload:", event);
       const payload = event.custom;
       if (!payload || payload.userId === user.id) return; // ignore own events
 
       if (payload.type === "sync_code") {
+        console.log("Syncing code from remote:", payload.code);
         setCode(payload.code);
         codeRef.current = payload.code;
         if (payload.language && payload.language !== selectedLanguage) {
@@ -123,12 +125,13 @@ function SessionPage() {
     if (call && user) {
       if (syncTimeoutRef.current) clearTimeout(syncTimeoutRef.current);
       syncTimeoutRef.current = setTimeout(() => {
+        console.log("Broadcasting code sync...");
         call.sendCustomEvent({
           type: "sync_code",
           code: codeRef.current,
           language: selectedLanguage,
           userId: user.id,
-        }).catch(console.error);
+        }).catch((err) => console.error("Error broadcasting code:", err));
       }, 500); // 500ms debounce
     }
   };
