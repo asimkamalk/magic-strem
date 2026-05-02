@@ -1,26 +1,26 @@
-<h1 align="center">✨ Full-Stack Interview Platform ✨</h1>
+<h1 align="center">✨ Magic Stream ✨</h1>
 
-![Demo App](/frontend/public/screenshot-for-readme.png)
+<p align="center">
+  <strong>The ultimate platform for collaborative coding interviews and pair programming.</strong>
+</p>
 
-✨ Highlights:
+## ✨ Highlights
 
-- 🧑‍💻 VSCode-Powered Code Editor
-- 🔐 Authentication via Clerk
-- 🎥 1-on-1 Video Interview Rooms
-- 🧭 Dashboard with Live Stats
-- 🔊 Mic & Camera Toggle, Screen Sharing & Recording
-- 💬 Real-time Chat Messaging
-- ⚙️ Secure Code Execution in Isolated Environment
-- 🎯 Auto Feedback — Success / Fail based on test cases
-- 🎉 Confetti on Success + Notifications on Fail
-- 🧩 Practice Problems Page (solo coding mode)
-- 🔒 Room Locking — allows only 2 participants
-- 🧠 Background Jobs with Inngest (async tasks)
-- 🧰 REST API with Node.js & Express
-- ⚡ Data Fetching & Caching via TanStack Query
-- 🤖 CodeRabbit for PR Analysis & Code Optimization
-- 🧑‍💻 Git & GitHub Workflow (branches, PRs, merges)
-- 🚀 Deployment on Sevalla (free-tier friendly)
+- 🧑‍💻 **Collaborative Code Editor:** Real-time code synchronization using Stream Custom Events.
+- 🚀 **Live Code Execution:** Secure, rapid code execution powered by JDoodle API.
+- 🎥 **1-on-1 Video Interview Rooms:** Seamless video and audio communication powered by Stream Video SDK.
+- 💬 **Real-time Chat Messaging:** Integrated messaging during active sessions.
+- 🔐 **Authentication via Clerk:** Secure and seamless user management.
+- 🧭 **Dashboard with Live Stats:** Track your sessions and progress.
+- 🧩 **Practice Problems Page:** Hone your skills in solo coding mode.
+- 🔒 **Room Locking:** Sessions strictly limited to 2 participants for focused pair programming.
+- 🧠 **Background Jobs:** Asynchronous tasks handled via Inngest.
+- 🧰 **REST API:** Robust backend powered by Node.js, Express, and MongoDB.
+
+## 🛠️ Tech Stack
+- **Frontend:** React, Vite, TailwindCSS, Monaco Editor, Stream Video React SDK.
+- **Backend:** Node.js, Express, MongoDB, Stream Chat Node SDK.
+- **Tools:** Clerk (Auth), Inngest (Background Jobs), JDoodle (Code Execution).
 
 ---
 
@@ -61,7 +61,6 @@ VITE_STREAM_API_KEY=your_stream_api_key
 ## 🔧 Run the Backend
 
 ```bash
-
 cd backend
 npm install
 npm run dev
@@ -71,8 +70,7 @@ npm run dev
 
 ## 🔧 Run the Frontend
 
-```
-bash
+```bash
 cd frontend
 npm install
 npm run dev
